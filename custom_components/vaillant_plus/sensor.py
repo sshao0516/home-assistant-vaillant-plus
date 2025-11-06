@@ -94,6 +94,10 @@ temperatures = [
     ("Upper_Limitation_of_CH_Setpoint", "暖气最大设置温度"),
     ("Lower_Limitation_of_DHW_Setpoint", "生活热水最小设置温度"),
     ("Upper_Limitation_of_DHW_Setpoint", "生活热水最大设置温度"),
+    ("ext_CH_flow_temperature", "ext_CH_flow_temperature"),
+    ("ext_CH_return_temperature", "ext_CH_return_temperature"),
+    ("ext_DHW_flow_temperature", "ext_DHW_flow_temperature"),
+    ("ext_DHW_return_temperature", "ext_DHW_return_temperature"),
 ]
 for key, name in temperatures:
     SENSOR_DESCRIPTIONS.append(
@@ -148,6 +152,12 @@ async def async_setup_entry(
             ):
                 new_entities.append(VaillantSensorEntity(client, description))
                 added_entities.append(description.key)
+            elif (
+                description.key.startswith("ext_")
+                and description.key not in added_entities
+            ):
+                new_entities.append(VaillantSensorEntity(client, description))
+                added_entities.append(description.key)
 
         if len(new_entities) > 0:
             async_add_entities(new_entities)
@@ -192,4 +202,21 @@ class VaillantSensorEntity(VaillantEntity, SensorEntity):
             self._attr_native_value = value
             self._attr_available = value is not None
             # _LOGGER.info("sensor update data %s==%s",self.entity_description.key,value)
+            self.async_schedule_update_ha_state(True)
+        if self.entity_description.key.startswith("ext_"):
+            self._attr_available = None
+            if 2 <= data.get("burn_status") <= 17:
+                if self.entity_description.key == "ext_CH_flow_temperature":
+                    self._attr_native_value = data.get("Flow_temperature")
+                    self._attr_available = data.get("Flow_temperature") is not None
+                if self.entity_description.key == "ext_CH_return_temperature":
+                    self._attr_native_value = data.get("return_temperature")
+                    self._attr_available = data.get("return_temperature") is not None
+            if 22 <= data.get("burn_status") <= 28:
+                if self.entity_description.key == "ext_DHW_flow_temperature":
+                    self._attr_native_value = data.get("Tank_temperature")
+                    self._attr_available = data.get("Tank_temperature") is not None
+                if self.entity_description.key == "ext_DHW_return_temperature":
+                    self._attr_native_value = data.get("Tank_temperature")
+                    self._attr_available = data.get("Tank_temperature") is not None
             self.async_schedule_update_ha_state(True)
