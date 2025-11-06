@@ -216,9 +216,9 @@ class VaillantSensorEntity(VaillantEntity, SensorEntity):
                     self._attr_available = data.get("return_temperature") is not None
             if 22 <= data.get("burn_status", 0) <= 28:
                 if self.entity_description.key == "ext_DHW_flow_temperature":
-                    self._attr_native_value = data.get("Tank_temperature")
-                    self._attr_available = data.get("Tank_temperature") is not None
+                    self._attr_native_value = data.get("Flow_temperature")
+                    self._attr_available = data.get("Flow_temperature") is not None
                 if self.entity_description.key == "ext_DHW_return_temperature":
-                    self._attr_native_value = data.get("Tank_temperature")
-                    self._attr_available = data.get("Tank_temperature") is not None
+                    self._attr_native_value = data.get("return_temperature")
+                    self._attr_available = data.get("return_temperature") is not None
             self.async_schedule_update_ha_state(True)
