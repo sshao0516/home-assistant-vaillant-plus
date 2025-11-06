@@ -1,4 +1,5 @@
 """Vaillant sensors."""
+
 from __future__ import annotations
 
 import logging
@@ -11,114 +12,109 @@ from homeassistant.components.sensor import (
     SensorStateClass,
 )
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import UnitOfTemperature
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from homeassistant.const import (
-    UnitOfTemperature
-)
-
 from .client import VaillantClient
-from .const import CONF_DID, DISPATCHERS, DOMAIN, EVT_DEVICE_CONNECTED, API_CLIENT
+from .const import API_CLIENT, CONF_DID, DISPATCHERS, DOMAIN, EVT_DEVICE_CONNECTED
 from .entity import VaillantEntity
 
 _LOGGER = logging.getLogger(__name__)
 
 
-SENSOR_DESCRIPTIONS = (
-
-	SensorEntityDescription(
+SENSOR_DESCRIPTIONS = [
+    SensorEntityDescription(
         key="water_pressure",
         name="供暖水压",
         device_class=SensorDeviceClass.PRESSURE,
         state_class=SensorStateClass.MEASUREMENT,
-      native_unit_of_measurement="bar",
+        native_unit_of_measurement="bar",
     ),
-	SensorEntityDescription(
+    SensorEntityDescription(
         key="indoor_temperature",
         name="indoor emperature",
         device_class=SensorDeviceClass.TEMPERATURE,
         state_class=SensorStateClass.MEASUREMENT,
-      native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
     ),
     SensorEntityDescription(
         key="Outdoor_Temperature",
         name="Outdoor Temperature",
         device_class=SensorDeviceClass.TEMPERATURE,
         state_class=SensorStateClass.MEASUREMENT,
-      native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
     ),
     SensorEntityDescription(
         key="DHW_setpoint",
         name="生活热水设置温度",
         device_class=SensorDeviceClass.TEMPERATURE,
         state_class=SensorStateClass.MEASUREMENT,
-      native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
     ),
     SensorEntityDescription(
         key="Lower_Limitation_of_CH_Setpoint",
         name="暖气最小设置温度",
         device_class=SensorDeviceClass.TEMPERATURE,
         state_class=SensorStateClass.MEASUREMENT,
-      native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
     ),
     SensorEntityDescription(
         key="Upper_Limitation_of_CH_Setpoint",
         name="暖气最大设置温度",
         device_class=SensorDeviceClass.TEMPERATURE,
         state_class=SensorStateClass.MEASUREMENT,
-      native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
     ),
     SensorEntityDescription(
         key="Lower_Limitation_of_DHW_Setpoint",
         name="生活热水最小设置温度",
         device_class=SensorDeviceClass.TEMPERATURE,
         state_class=SensorStateClass.MEASUREMENT,
-      native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
     ),
     SensorEntityDescription(
         key="Upper_Limitation_of_DHW_Setpoint",
         name="生活热水最大设置温度",
         device_class=SensorDeviceClass.TEMPERATURE,
         state_class=SensorStateClass.MEASUREMENT,
-      native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
     ),
     SensorEntityDescription(
         key="Flow_Temperature_Setpoint",
         name="暖气设置温度",
         device_class=SensorDeviceClass.TEMPERATURE,
         state_class=SensorStateClass.MEASUREMENT,
-      native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
     ),
     SensorEntityDescription(
         key="Flow_temperature",
         name="供暖出水温度",
         device_class=SensorDeviceClass.TEMPERATURE,
         state_class=SensorStateClass.MEASUREMENT,
-      native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
     ),
     SensorEntityDescription(
         key="return_temperature",
         name="供暖回水温度",
         device_class=SensorDeviceClass.TEMPERATURE,
         state_class=SensorStateClass.MEASUREMENT,
-      native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
     ),
     SensorEntityDescription(
         key="Mode_Setting_CH",
         name="Mode Setting CH",
     ),
-
-     SensorEntityDescription(
+    SensorEntityDescription(
         key="Heating_System_Setting",
         name="Heating System Setting",
     ),
-      SensorEntityDescription(
+    SensorEntityDescription(
         key="burn_status",
         name="burn_status",
     ),
-)
+]
 
 
 async def async_setup_entry(
@@ -126,9 +122,7 @@ async def async_setup_entry(
 ) -> bool:
     """Set up Vaillant sensors."""
     device_id = entry.data.get(CONF_DID)
-    client: VaillantClient = hass.data[DOMAIN][API_CLIENT][
-        entry.entry_id
-    ]
+    client: VaillantClient = hass.data[DOMAIN][API_CLIENT][entry.entry_id]
 
     added_entities = []
 
@@ -176,13 +170,9 @@ class VaillantSensorEntity(VaillantEntity, SensorEntity):
     def update_from_latest_data(self, data: dict[str, Any]) -> None:
         """Update the entity from the latest data."""
 
-        if(self.entity_description.key in data):
-          value = data.get(self.entity_description.key)
-          self._attr_native_value = value
-          self._attr_available = value is not None
-          # _LOGGER.info("sensor update data %s==%s",self.entity_description.key,value)
-          self.async_schedule_update_ha_state(True)
-        
-      
-
-
+        if self.entity_description.key in data:
+            value = data.get(self.entity_description.key)
+            self._attr_native_value = value
+            self._attr_available = value is not None
+            # _LOGGER.info("sensor update data %s==%s",self.entity_description.key,value)
+            self.async_schedule_update_ha_state(True)
