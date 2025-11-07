@@ -1,11 +1,12 @@
 """Vaillant vSMART entity classes."""
+
 from datetime import timedelta
 import logging
 from typing import Any
 
 from homeassistant.core import callback
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
-from homeassistant.helpers.entity import Entity, DeviceInfo
+from homeassistant.helpers.entity import DeviceInfo, Entity
 from vaillant_plus_cn_api import Device
 
 from .client import VaillantClient
@@ -38,7 +39,7 @@ class VaillantEntity(Entity):
         if self._client.device_attrs.get(attr) is not None:
             return self._client.device_attrs.get(attr)
         return None
-        
+
     def set_device_attr(self, attr, value):
         """
         Set the value of a device attribute.
@@ -51,14 +52,14 @@ class VaillantEntity(Entity):
 
         self.update_from_latest_data(self._client.device_attrs.copy())
         self.async_write_ha_state()
-            
+
     async def async_added_to_hass(self) -> None:
         """Register callbacks."""
 
         @callback
         def update(data: dict[str, Any]) -> None:
             """Update the state."""
-            _LOGGER.debug("write ha state: %s", data)
+            # _LOGGER.debug("write ha state: %s", data)
             self.update_from_latest_data(data)
 
         self.async_on_remove(
@@ -95,6 +96,4 @@ class VaillantEntity(Entity):
 
     async def send_command(self, attr: str, value: Any) -> None:
         """Send operations to cloud."""
-        await self._client.control_device({
-            f"{attr}": value
-        })
+        await self._client.control_device({f"{attr}": value})
