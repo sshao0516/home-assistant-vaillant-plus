@@ -205,10 +205,7 @@ class VaillantSensorEntity(VaillantEntity, SensorEntity):
             self.async_schedule_update_ha_state(True)
             return
 
-        _LOGGER.debug(
-            "update_from_latest_data: %s, %s", self.entity_description.key, data
-        )
-        if self.entity_description.key.startswith("ext_") and "burn_status" in data:
+        if self.entity_description.key.startswith("ext_"):
             self._attr_available = None
             if 2 <= data.get("burn_status", 0) <= 8:
                 if self.entity_description.key == "ext_CH_flow_temperature":

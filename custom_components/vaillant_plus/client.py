@@ -1,4 +1,5 @@
 """Vaillant Plus client."""
+
 from __future__ import annotations
 
 import asyncio
@@ -17,10 +18,11 @@ from vaillant_plus_cn_api import (
     VaillantWebsocketClient,
 )
 
-from .utils import get_aiohttp_session
 from .const import EVT_DEVICE_CONNECTED, EVT_DEVICE_UPDATED, EVT_TOKEN_UPDATED
+from .utils import get_aiohttp_session
 
 _LOGGER = logging.getLogger(__name__)
+
 
 class VaillantClient:
     """API client for communicating with the cloud."""
@@ -56,7 +58,9 @@ class VaillantClient:
 
     async def _connect(self) -> None:
         device_list = await self._api_client.get_device_list()
-        filtered_device_list = [device for device in device_list if device.id == self._device_id]
+        filtered_device_list = [
+            device for device in device_list if device.id == self._device_id
+        ]
         if len(filtered_device_list) == 0:
             raise ShouldUpdateConfigEntry
 
@@ -71,19 +75,28 @@ class VaillantClient:
         @callback
         def device_connected(device_attrs: dict[str, Any]):
             self._device_attrs = device_attrs.copy()
-            if 'gateway_sn' in self._device_attrs:
+            if "gateway_sn" in self._device_attrs:
                 async_dispatcher_send(
-                    self._hass, EVT_DEVICE_CONNECTED.format(self._device_id), device_attrs.copy()
+                    self._hass,
+                    EVT_DEVICE_CONNECTED.format(self._device_id),
+                    device_attrs.copy(),
                 )
-# and 'gateway_sn' in device_attrs
+
+        # and 'gateway_sn' in device_attrs
         @callback
         def device_update(event: str, data: dict[str, Any]):
             if event == EVT_DEVICE_ATTR_UPDATE:
                 device_attrs: dict[str, Any] = data.get("data", {})
-                if len(device_attrs) > 0 :
+                if len(device_attrs) > 0:
+                    if device_attrs.get("burn_status") is None:
+                        device_attrs["burn_status"] = self._device_attrs.get(
+                            "burn_status"
+                        )
                     self._device_attrs = device_attrs.copy()
                     async_dispatcher_send(
-                        self._hass, EVT_DEVICE_UPDATED.format(self._device.id), device_attrs.copy()
+                        self._hass,
+                        EVT_DEVICE_UPDATED.format(self._device.id),
+                        device_attrs.copy(),
                     )
 
         self._websocket_client = VaillantWebsocketClient(
@@ -98,7 +111,9 @@ class VaillantClient:
 
     async def _get_token(self) -> None:
         _LOGGER.info("Token expired, retrieve new token...")
-        token_new = await self._api_client.login(self._token.username, self._token.password)
+        token_new = await self._api_client.login(
+            self._token.username, self._token.password
+        )
         self._token = token_new
         self._api_client.update_token(token_new)
         async_dispatcher_send(
@@ -147,10 +162,12 @@ class VaillantClient:
                 await self._get_token()
                 await asyncio.sleep(retry_times * 5)
                 retry_times = retry_times + 1
-                _LOGGER.warning("Control device failed due to invaild token, retry %d time", retry_times)
+                _LOGGER.warning(
+                    "Control device failed due to invaild token, retry %d time",
+                    retry_times,
+                )
 
         return False
-
 
 
 class InvalidAuth(HomeAssistantError):
