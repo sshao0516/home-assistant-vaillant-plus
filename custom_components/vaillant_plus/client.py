@@ -74,6 +74,8 @@ class VaillantClient:
 
         @callback
         def device_connected(device_attrs: dict[str, Any]):
+            if device_attrs.get("burn_status") is None:
+                device_attrs["burn_status"] = self._device_attrs.get("burn_status")
             self._device_attrs = device_attrs.copy()
             if "gateway_sn" in self._device_attrs:
                 async_dispatcher_send(
